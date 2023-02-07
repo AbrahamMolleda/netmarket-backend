@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Specifications;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,8 +14,8 @@ namespace WebAPI.Controllers
     [ApiController]
     public class ProductoController : ControllerBase
     {
-        private readonly IProductoRepository _productoRepository;
-        public ProductoController(IProductoRepository productoRepository)
+        private readonly IGenericRepository<Producto> _productoRepository;
+        public ProductoController(IGenericRepository<Producto> productoRepository)
         {
             _productoRepository = productoRepository;
         }
@@ -22,14 +23,17 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Producto>>> GetProductos()
         {
-            var productos = await _productoRepository.GetProductosAsync();
+            var spec = new ProductosWithCategoriaAndMarcaSpecification();
+            var productos = await _productoRepository.GetAllWithSpec(spec);
             return Ok(productos);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Producto>> GetProducto(int id)
         {
-            var producto = await _productoRepository.GetProductoByIdAsync(id);
+            // spec = debe incluir la logica de la condicion de la consulta y tambien las relaciones entre las entidades
+            var spec = new ProductosWithCategoriaAndMarcaSpecification(id);
+            var producto = await _productoRepository.GetByIdWithSpec(spec);
             return Ok(producto);
         }
     }
